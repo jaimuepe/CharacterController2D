@@ -1,2 +1,4 @@
 # CharacterController2D
-Prototype for a Unity CharacterController2D.
+An implementation of a 2D character-controller in Unity that doesn't use RigidBody2D.
+
+WIP
