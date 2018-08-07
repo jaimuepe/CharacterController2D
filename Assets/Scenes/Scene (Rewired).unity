@@ -995,7 +995,7 @@ MonoBehaviour:
     groundForgivingDistance: 0.15
     numberOfVerticalRays: 5
     numberOfHorizontalRays: 5
-    skinWidth: 0.005
+    skinWidth: 0.002
   mTotalVelocity: {x: 0, y: 0}
 --- !u!1 &1085877516
 GameObject:

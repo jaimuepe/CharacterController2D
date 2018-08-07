@@ -13,6 +13,7 @@ namespace CC2D
 
         [Header("Jump")]
         public float jumpLeeway;
+        public float jumpEdgeLeeway;
         public float jumpMagnitude;
         public AnimationCurve jumpCurveUp;
         public AnimationCurve jumpCurveDown;

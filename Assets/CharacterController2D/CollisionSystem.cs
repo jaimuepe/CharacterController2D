@@ -67,7 +67,6 @@ namespace CC2D
 
         public Vector2 Calculate(Vector2 deltaMovement)
         {
-            data.closeToGround = false;
             data.colliding = false;
             data.collisionSides = 0;
 
@@ -128,25 +127,6 @@ namespace CC2D
                 else
                 {
                     data.collisionSides |= CollisionData.COLLIDE_BOTTOM;
-                }
-            }
-            else
-            {
-                if (mDeltaMovement.y < 0.0f)
-                {
-                    // No collision on bottom - check again at a larger distance
-                    for (int i = 0; i < NumberOfVerticalRays; i++)
-                    {
-                        Vector2 rayOrigin = origin + i * distanceBetweenRays * Vector2.right;
-
-                        int hits = Physics2D.RaycastNonAlloc(rayOrigin, direction, raycastHitResults, rayDistance + cc.collisionParameters.groundForgivingDistance, obstacleLayer);
-                        if (hits > 0)
-                        {
-                            data.closeToGround = true;
-                        }
-
-                        // Debug.DrawRay(rayOrigin, rayDistance * direction, Color.red);
-                    }
                 }
             }
 

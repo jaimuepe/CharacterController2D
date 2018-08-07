@@ -6,13 +6,11 @@ namespace CC2D
 {
     public class JumpGravitySystem : MonoBehaviour
     {
-        public bool JumpThisFrame { get; set; }
-
         public bool Jumping { get { return jumping; } set { jumping = value; } }
 
         public bool Grounded { get { return grounded; } }
 
-        public bool RecentlyGrounded { get { return jumpLeewayTimer > 0.0f; } }
+        public bool RecentlyGrounded { get { return edgeJumpLeewayTimer > 0.0f; } }
 
         public bool Airborne { get { return !Grounded; } }
 
@@ -42,7 +40,10 @@ namespace CC2D
         private float airborneTime;
 
         [SerializeField]
-        private float jumpLeewayTimer;
+        private float edgeJumpLeewayTimer;
+
+        [SerializeField]
+        private float jumpActiveTimer;
 
         private CharacterController2D cc;
 
@@ -64,11 +65,12 @@ namespace CC2D
             jumpCurveUpLength = JumpCurveUp.keys[JumpCurveUp.length - 1].time;
 #endif
 
-            if (JumpThisFrame)
+            if ((Grounded || RecentlyGrounded) && jumpActiveTimer > 0.0f)
             {
                 mAccumulatedVelocity = JumpMagnitude * JumpCurveUp.Evaluate(0);
                 airborneTime = 0.0f;
-                jumpLeewayTimer = 0.0f;
+                jumpActiveTimer = 0.0f;
+                edgeJumpLeewayTimer = 0.0f;
 
                 Jumping = true;
             }
@@ -105,6 +107,11 @@ namespace CC2D
             }
         }
 
+        public void TryJump()
+        {
+            jumpActiveTimer = cc.movementParameters.jumpLeeway;
+        }
+
         public void UpdateCollisionData()
         {
             CollisionData cData = cc.collisionSystem.Data;
@@ -115,7 +122,7 @@ namespace CC2D
                 grounded = true;
                 Jumping = false;
 
-                jumpLeewayTimer = 0.0f;
+                edgeJumpLeewayTimer = 0.0f;
                 airborneTime = 0.0f;
                 mAccumulatedVelocity = 0.0f;
             }
@@ -132,18 +139,22 @@ namespace CC2D
             // leeway
             if (falling)
             {
-                jumpLeewayTimer = cc.movementParameters.jumpLeeway;
+                edgeJumpLeewayTimer = cc.movementParameters.jumpEdgeLeeway;
             }
             else
             {
-                jumpLeewayTimer = Mathf.Max(jumpLeewayTimer - Time.deltaTime, 0.0f);
+                edgeJumpLeewayTimer = Mathf.Max(edgeJumpLeewayTimer - Time.deltaTime, 0.0f);
+            }
+
+            if (!grounded)
+            {
+                jumpActiveTimer = Mathf.Max(jumpActiveTimer - Time.deltaTime, 0.0f);
             }
         }
 
         public void ClearVariablesEndFrame()
         {
             wasJumping = Jumping;
-            JumpThisFrame = false;
         }
     }
 }

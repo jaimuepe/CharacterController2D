@@ -60,10 +60,7 @@ namespace CC2D
 
         public void RequestJump()
         {
-            if (jumpSystem.Grounded || collisionSystem.Data.closeToGround || jumpSystem.RecentlyGrounded)
-            {
-                jumpSystem.JumpThisFrame = true;
-            }
+            jumpSystem.TryJump();
         }
 
         public void RequestStopJumping()
