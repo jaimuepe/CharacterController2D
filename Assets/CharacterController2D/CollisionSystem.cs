@@ -7,14 +7,6 @@ namespace CC2D
     [RequireComponent(typeof(CharacterController2D))]
     public class CollisionSystem : MonoBehaviour
     {
-        [SerializeField]
-        private bool grounded;
-        public bool Grounded { get { return grounded; } }
-
-        [SerializeField]
-        private bool airborne;
-        public bool Airborne { get { return airborne; } }
-
         private int NumberOfVerticalRays { get { return cc.collisionParameters.numberOfVerticalRays; } }
         private int NumberOfHorizontalRays { get { return cc.collisionParameters.numberOfHorizontalRays; } }
         private float SkinWidth { get { return cc.collisionParameters.skinWidth; } }
@@ -33,6 +25,8 @@ namespace CC2D
         private RaycastHit2D[] raycastHitResults = new RaycastHit2D[3];
 
         private CollisionData data;
+        public CollisionData Data { get { return data; } }
+
         CharacterController2D cc;
 
         public delegate void OnCollisionDelegate(CollisionData data);
@@ -73,6 +67,10 @@ namespace CC2D
 
         public Vector2 Calculate(Vector2 deltaMovement)
         {
+            data.closeToGround = false;
+            data.colliding = false;
+            data.collisionSides = 0;
+
             mDeltaMovement = deltaMovement;
 
             HandleVerticalCollisions();
@@ -86,16 +84,7 @@ namespace CC2D
                 }
             }
 
-            grounded = (data.collisionSides & CollisionData.COLLIDE_BOTTOM) > 0;
-            airborne = !grounded;
-
             return mDeltaMovement;
-        }
-
-        public void ClearVariablesStartFrame()
-        {
-            data.colliding = false;
-            data.collisionSides = 0;
         }
 
         private void HandleVerticalCollisions()
@@ -139,6 +128,25 @@ namespace CC2D
                 else
                 {
                     data.collisionSides |= CollisionData.COLLIDE_BOTTOM;
+                }
+            }
+            else
+            {
+                if (mDeltaMovement.y < 0.0f)
+                {
+                    // No collision on bottom - check again at a larger distance
+                    for (int i = 0; i < NumberOfVerticalRays; i++)
+                    {
+                        Vector2 rayOrigin = origin + i * distanceBetweenRays * Vector2.right;
+
+                        int hits = Physics2D.RaycastNonAlloc(rayOrigin, direction, raycastHitResults, rayDistance + cc.collisionParameters.groundForgivingDistance, obstacleLayer);
+                        if (hits > 0)
+                        {
+                            data.closeToGround = true;
+                        }
+
+                        // Debug.DrawRay(rayOrigin, rayDistance * direction, Color.red);
+                    }
                 }
             }
 

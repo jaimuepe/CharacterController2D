@@ -11,4 +11,5 @@ public struct CollisionData
 
     public bool colliding;
     public int collisionSides;
+    internal bool closeToGround;
 }

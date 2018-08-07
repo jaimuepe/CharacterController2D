@@ -3,13 +3,20 @@ using UnityEngine;
 
 namespace CC2D
 {
-    public class InputManager : MonoBehaviour
+    public class InputManagerRewired : MonoBehaviour
     {
         [SerializeField]
         private CharacterController2D characterController2D;
 
+        private Player player;
+
         private bool jumpPressed;
         private float moveDirection;
+
+        private void Awake()
+        {
+            player = ReInput.players.GetPlayer(0);
+        }
 
         private void Update()
         {
@@ -19,8 +26,8 @@ namespace CC2D
 
         private void GetInput()
         {
-            moveDirection = Input.GetAxisRaw("Horizontal");
-            jumpPressed = Input.GetButtonDown("Jump");
+            moveDirection = player.GetAxis("mHorizontal");
+            jumpPressed = player.GetButtonDown("jump");
 
 #if UNITY_EDITOR
             if (Input.GetKeyDown(KeyCode.Tab))

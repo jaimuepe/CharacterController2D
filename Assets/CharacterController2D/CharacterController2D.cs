@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,9 +10,6 @@ namespace CC2D
         public Movementparameters movementParameters;
         public CollisionParameters collisionParameters;
 
-        public bool Grounded { get { return collision.Grounded; } }
-        public bool Airborne { get { return collision.Airborne; } }
-
         private Transform mTransform;
 
         [Header("Debug")]
@@ -19,63 +17,74 @@ namespace CC2D
         [SerializeField]
         private Vector2 mTotalVelocity;
 
-        private MovementSystem movement;
-        private CollisionSystem collision;
+        [NonSerialized]
+        public MovementSystem movementSystem;
+        [NonSerialized]
+        public JumpGravitySystem jumpSystem;
+        [NonSerialized]
+        public CollisionSystem collisionSystem;
 
         private void Awake()
         {
             mTransform = transform;
 
-            collision = GetComponent<CollisionSystem>();
-            if (!collision)
+            collisionSystem = GetComponent<CollisionSystem>();
+            if (!collisionSystem)
             {
-                collision = gameObject.AddComponent<CollisionSystem>();
+                collisionSystem = gameObject.AddComponent<CollisionSystem>();
             }
 
-            movement = GetComponent<MovementSystem>();
-            if (!movement)
+            movementSystem = GetComponent<MovementSystem>();
+            if (!movementSystem)
             {
-                movement = gameObject.AddComponent<MovementSystem>();
+                movementSystem = gameObject.AddComponent<MovementSystem>();
+            }
+
+            jumpSystem = GetComponent<JumpGravitySystem>();
+            if (!jumpSystem)
+            {
+                jumpSystem = gameObject.AddComponent<JumpGravitySystem>();
             }
         }
 
-        public void RequestMove(Vector2 moveVector)
+        public void RequestMove(float moveDirection)
         {
-            Vector2 dirVector = movement.DirectionVector;
-            if (moveVector.x != 0.0f)
+            // either -1, 0 or 1
+            if (moveDirection != 0.0f)
             {
-                dirVector.x = Mathf.Sign(moveVector.x);
+                moveDirection = Mathf.Sign(moveDirection);
             }
 
-            if (moveVector.y != 0.0f)
-            {
-                dirVector.y = Mathf.Sign(moveVector.y);
-            }
-
-            movement.DirectionVector = dirVector;
+            movementSystem.Direction = moveDirection;
         }
 
         public void RequestJump()
         {
-            if (collision.Grounded)
+            if (jumpSystem.Grounded || collisionSystem.Data.closeToGround || jumpSystem.RecentlyGrounded)
             {
-                movement.Jump = true;
+                jumpSystem.Jump = true;
             }
         }
 
         private void Update()
         {
-            collision.ClearVariablesStartFrame();
+            movementSystem.Calculate();
+            jumpSystem.Calculate();
 
-            movement.Calculate();
-
+            mTotalVelocity = new Vector2(movementSystem.AccumulatedVelocity, jumpSystem.AccumulatedVelocity);
             Vector2 deltaMovement = mTotalVelocity * Time.deltaTime;
 
-            deltaMovement = collision.Calculate(deltaMovement);
+            deltaMovement = collisionSystem.Calculate(deltaMovement);
+
+            movementSystem.UpdateCollisionData();
+            jumpSystem.UpdateCollisionData();
+
+            mTotalVelocity = new Vector2(movementSystem.AccumulatedVelocity, jumpSystem.AccumulatedVelocity);
 
             ResolvePosition(deltaMovement);
 
-            movement.ClearVariablesEndFrame();
+            movementSystem.ClearVariablesEndFrame();
+            jumpSystem.ClearVariablesEndFrame();
         }
 
         private void ResolvePosition(Vector2 deltaMovement)

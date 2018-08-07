@@ -8,108 +8,80 @@ namespace CC2D
     public class MovementSystem : MonoBehaviour
     {
         [Header("Debug")]
-        [SerializeField]
-        private Vector2 mAccumulatedVelocity;
-        public Vector2 AccumulatedVelocity { get { return mAccumulatedVelocity; } }
 
         [SerializeField]
-        private bool jump;
-        public bool Jump { get { return jump; } set { jump = value; } }
+        private float mAccumulatedVelocity;
+        public float AccumulatedVelocity { get { return mAccumulatedVelocity; } }
 
-        public Vector2 DirectionVector { get; set; }
+        public float Direction { get; set; }
 
         private float Deceleration { get { return cc.movementParameters.movementDeceleration; } }
         private float Acceleration { get { return cc.movementParameters.movementAcceleration; } }
         private float MaxSpeed { get { return cc.movementParameters.maxMovementSpeed; } }
-        private float JumpMagnitude { get { return cc.movementParameters.jumpMagnitude; } }
-        private AnimationCurve JumpCurve { get { return cc.movementParameters.jumpCurve; } }
-        private float JumpTime { get { return cc.movementParameters.jumpTime; } }
 
-        private float airborneTime = 0.0f;
-
-        CharacterController2D cc;
+        private CharacterController2D cc;
 
         private void Start()
         {
             cc = GetComponent<CharacterController2D>();
-            CollisionSystem cs = GetComponent<CollisionSystem>();
-            cs.OnCollision += OnCollision;
         }
 
         public void Calculate()
         {
-            if (DirectionVector.x != 0.0f)
+
+            if (Direction != 0.0f)
             {
-                mAccumulatedVelocity.x += Acceleration * Time.deltaTime * Mathf.Sign(DirectionVector.x);
+                mAccumulatedVelocity += Acceleration * Time.deltaTime * Mathf.Sign(Direction);
             }
 
-            if (Jump || cc.Airborne)
-            {
-                mAccumulatedVelocity.y = JumpMagnitude * Time.deltaTime * JumpCurve.Evaluate(airborneTime / JumpTime);
-            }
-
-            mAccumulatedVelocity.x = Mathf.Clamp(mAccumulatedVelocity.x, -MaxSpeed, MaxSpeed);
-            mAccumulatedVelocity.y = Mathf.Max(mAccumulatedVelocity.y, 0.0f);
+            mAccumulatedVelocity = Mathf.Clamp(mAccumulatedVelocity, -MaxSpeed, MaxSpeed);
 
             ApplyDeceleration();
+        }
 
-            if (cc.Airborne)
+        public void UpdateCollisionData()
+        {
+            CollisionData cData = cc.collisionSystem.Data;
+            int collisionSides = cData.collisionSides;
+
+            if ((collisionSides & CollisionData.COLLIDE_RIGHT) > 0 && mAccumulatedVelocity > 0.0f)
             {
-                airborneTime += Time.deltaTime;
+                mAccumulatedVelocity = 0.0f;
             }
 
-            Debug.Log(airborneTime);
+            if ((collisionSides & CollisionData.COLLIDE_LEFT) > 0 && mAccumulatedVelocity < 0.0f)
+            {
+                mAccumulatedVelocity = 0.0f;
+            }
         }
 
         private void ApplyDeceleration()
         {
-            if (DirectionVector.x == 0.0f && mAccumulatedVelocity.x != 0.0f)
+            if (Direction == 0.0f && mAccumulatedVelocity != 0.0f)
             {
                 // decelerate
 
-                float deceleration = -Mathf.Sign(mAccumulatedVelocity.x) * Deceleration;
+                float deceleration = -Mathf.Sign(mAccumulatedVelocity) * Deceleration;
 
-                bool overshot = (mAccumulatedVelocity.x > 0.0f
-                        && mAccumulatedVelocity.x + deceleration * Time.deltaTime < 0.0f)
-                    || (mAccumulatedVelocity.x < 0.0f
-                        && mAccumulatedVelocity.x + deceleration * Time.deltaTime > 0.0f);
+                bool overshot = (mAccumulatedVelocity > 0.0f
+                        && mAccumulatedVelocity + deceleration * Time.deltaTime < 0.0f)
+                    || (mAccumulatedVelocity < 0.0f
+                        && mAccumulatedVelocity + deceleration * Time.deltaTime > 0.0f);
 
                 if (overshot)
                 {
-                    mAccumulatedVelocity.x = 0.0f;
+                    mAccumulatedVelocity = 0.0f;
                 }
                 else
                 {
-                    mAccumulatedVelocity.x += deceleration * Time.deltaTime;
+                    mAccumulatedVelocity += deceleration * Time.deltaTime;
                 }
             }
         }
 
         public void ClearVariablesEndFrame()
         {
-            DirectionVector = Vector2.zero;
-            Jump = false;
-        }
-
-        private void OnCollision(CollisionData data)
-        {
-            int sides = data.collisionSides;
-            if ((sides & CollisionData.COLLIDE_TOP) > 0 || (sides & CollisionData.COLLIDE_BOTTOM) > 0)
-            {
-                if ((sides & CollisionData.COLLIDE_BOTTOM) > 0)
-                {
-                    airborneTime = 0.0f;
-                }
-                mAccumulatedVelocity.y = 0.0f;
-            }
-            if ((sides & CollisionData.COLLIDE_RIGHT) > 0 && mAccumulatedVelocity.x > 0.0f)
-            {
-                mAccumulatedVelocity.x = 0.0f;
-            }
-            if ((sides & CollisionData.COLLIDE_LEFT) > 0 && mAccumulatedVelocity.x < 0.0f)
-            {
-                mAccumulatedVelocity.x = 0.0f;
-            }
+            Direction = 0.0f;
         }
     }
 }
