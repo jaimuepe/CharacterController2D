@@ -884,14 +884,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementParameters:
-    affectedByGravity: 1
-    gravityAcceleration: {x: 0, y: -9.8}
-    gravityDeceleration: 2
-    maxGravitySpeed: 15
     maxMovementSpeed: 5
     movementAcceleration: 5000
     movementDeceleration: 5000
-    jumpLeeway: 1
+    jumpLeeway: 0.15
     jumpMagnitude: 10
     jumpCurveUp:
       serializedVersion: 2
@@ -999,7 +995,7 @@ MonoBehaviour:
     groundForgivingDistance: 0.15
     numberOfVerticalRays: 5
     numberOfHorizontalRays: 5
-    skinWidth: 0.01
+    skinWidth: 0.005
   mTotalVelocity: {x: 0, y: 0}
 --- !u!1 &1085877516
 GameObject:
@@ -1165,7 +1161,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1252793160}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92f25ffc610b66842b61bfc4efca2d67, type: 3}
+  m_Script: {fileID: 11500000, guid: eb045f136892f6145b44ccceea814211, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   characterController2D: {fileID: 989758055}
@@ -1298,7 +1294,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1544371437
 MonoBehaviour:
   m_ObjectHideFlags: 0

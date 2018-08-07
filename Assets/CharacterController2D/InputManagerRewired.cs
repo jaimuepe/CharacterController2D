@@ -11,6 +11,8 @@ namespace CC2D
         private Player player;
 
         private bool jumpPressed;
+        private bool jumpReleased;
+
         private float moveDirection;
 
         private void Awake()
@@ -28,6 +30,8 @@ namespace CC2D
         {
             moveDirection = player.GetAxis("mHorizontal");
             jumpPressed = player.GetButtonDown("jump");
+            bool jumpHold = !jumpPressed && player.GetButton("jump");
+            jumpReleased = !jumpPressed && !jumpHold;
 
 #if UNITY_EDITOR
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -57,6 +61,10 @@ namespace CC2D
             if (jumpPressed)
             {
                 characterController2D.RequestJump();
+            }
+            else if (jumpReleased)
+            {
+                characterController2D.RequestStopJumping();
             }
         }
     }

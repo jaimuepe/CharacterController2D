@@ -6,7 +6,9 @@ namespace CC2D
 {
     public class JumpGravitySystem : MonoBehaviour
     {
-        public bool Jump { get; set; }
+        public bool JumpThisFrame { get; set; }
+
+        public bool Jumping { get { return jumping; } set { jumping = value; } }
 
         public bool Grounded { get { return grounded; } }
 
@@ -31,6 +33,9 @@ namespace CC2D
         private bool falling;
 
         [SerializeField]
+        private bool jumping;
+
+        [SerializeField]
         private float mAccumulatedVelocity;
 
         [SerializeField]
@@ -40,6 +45,8 @@ namespace CC2D
         private float jumpLeewayTimer;
 
         private CharacterController2D cc;
+
+        private bool wasJumping;
 
         private void Awake()
         {
@@ -57,14 +64,21 @@ namespace CC2D
             jumpCurveUpLength = JumpCurveUp.keys[JumpCurveUp.length - 1].time;
 #endif
 
-            if (Jump)
+            if (JumpThisFrame)
             {
                 mAccumulatedVelocity = JumpMagnitude * JumpCurveUp.Evaluate(0);
                 airborneTime = 0.0f;
                 jumpLeewayTimer = 0.0f;
+
+                Jumping = true;
             }
             else if (Airborne)
             {
+                if (wasJumping && !Jumping)
+                {
+                    airborneTime = Mathf.Max(airborneTime, jumpCurveUpLength);
+                }
+
                 if (airborneTime == 0.0f && mAccumulatedVelocity == 0.0f)
                 {
                     // fall
@@ -99,6 +113,7 @@ namespace CC2D
             if ((collisionSides & CollisionData.COLLIDE_BOTTOM) > 0)
             {
                 grounded = true;
+                Jumping = false;
 
                 jumpLeewayTimer = 0.0f;
                 airborneTime = 0.0f;
@@ -127,7 +142,8 @@ namespace CC2D
 
         public void ClearVariablesEndFrame()
         {
-            Jump = false;
+            wasJumping = Jumping;
+            JumpThisFrame = false;
         }
     }
 }

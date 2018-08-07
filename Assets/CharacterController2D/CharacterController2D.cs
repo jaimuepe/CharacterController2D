@@ -62,8 +62,13 @@ namespace CC2D
         {
             if (jumpSystem.Grounded || collisionSystem.Data.closeToGround || jumpSystem.RecentlyGrounded)
             {
-                jumpSystem.Jump = true;
+                jumpSystem.JumpThisFrame = true;
             }
+        }
+
+        public void RequestStopJumping()
+        {
+            jumpSystem.Jumping = false;
         }
 
         private void Update()
