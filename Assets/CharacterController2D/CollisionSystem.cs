@@ -22,7 +22,7 @@ namespace CC2D
         private Vector2 Position { get { return mTransform.position; } }
 
         private LayerMask obstacleLayer;
-        private RaycastHit2D[] raycastHitResults = new RaycastHit2D[3];
+        private readonly RaycastHit2D[] raycastHitResults = new RaycastHit2D[3];
 
         private CollisionData data;
         public CollisionData Data { get { return data; } }
@@ -30,7 +30,6 @@ namespace CC2D
         CharacterController2D cc;
 
         public delegate void OnCollisionDelegate(CollisionData data);
-        public OnCollisionDelegate OnCollision;
 
         private void Awake()
         {
@@ -74,14 +73,6 @@ namespace CC2D
 
             HandleVerticalCollisions();
             HandleHorizontalCollisions();
-
-            if (data.colliding)
-            {
-                if (OnCollision != null)
-                {
-                    OnCollision.Invoke(data);
-                }
-            }
 
             return mDeltaMovement;
         }
